@@ -58,14 +58,13 @@ WHERE
 
 WITH countryList AS (
                     SELECT LTRIM(RTRIM(m.n.value('.', 'VARCHAR(30)'))) AS countryName
-					FROM 
-                       (
+		    FROM (
                         SELECT
                              CAST('<X>' + REPLACE(country, ', ', '</X><X>') + '</X>' AS XML) AS countryXML
                         FROM Netflix_N
                        ) AS T
                     CROSS APPLY countryXML.nodes('/X') AS m(n)
-)
+                     )
 SELECT DISTINCT TOP 5 country, COUNT(*) AS ContentCount
 FROM countryList
 GROUP BY country
@@ -77,8 +76,8 @@ SELECT *
 FROM Netflix_N
 WHERE 
     type = 'Movie' 
-	AND 
-	duration = (SELECT MAX(duration) FROM Netflix_N);
+    AND 
+    duration = (SELECT MAX(duration) FROM Netflix_N);
 
 ---6. Find content added in the last 5 years
 
@@ -99,21 +98,20 @@ SELECT *
 FROM Netflix_N
 WHERE 
      type = 'TV Show' 
-	 AND 
-	 CAST(LEFT(duration, CHARINDEX(' ', duration) - 1) AS INT) > 5
+     AND 
+     CAST(LEFT(duration, CHARINDEX(' ', duration) - 1) AS INT) > 5
 
 ---9. Count the number of content items in each genre
 
 WITH GenreCTE AS (
-      SELECT
-            LTRIM(RTRIM(m.n.value('.','VARCHAR(100)'))) 
+      SELECT LTRIM(RTRIM(m.n.value('.','VARCHAR(100)'))) 
 AS Genre
       FROM Netflix_N
       CROSS APPLY (
              SELECT CAST('<X>' + 
-REPLACE([listed_in], '&', 'amp;') + '</X>' AS XML) AS GenreXML 
-      ) AS A  
-	  CROSS APPLY GenreXML.nodes('/X') AS m(n)
+                    REPLACE([listed_in], '&', 'amp;') + '</X>' AS XML) AS GenreXML 
+             ) AS A  
+	     CROSS APPLY GenreXML.nodes('/X') AS m(n)
 ) 
 SELECT Genre,
        COUNT(*) AS Content_count
@@ -125,7 +123,7 @@ ORDER BY Content_count DESC;
 
 SELECT TOP 5 YEAR(CONVERT(DATE, date_added)) AS Year,
        COUNT(*) AS yearly_content,
-	   CAST(COUNT(*) *100 /(SELECT COUNT(*) FROM Netflix_N WHERE country = 'India') AS FLOAT) 
+       CAST(COUNT(*) *100 /(SELECT COUNT(*) FROM Netflix_N WHERE country = 'India') AS FLOAT) 
 AS Avg_content_percentage
 from Netflix_N 
 WHERE 
@@ -140,7 +138,7 @@ FROM Netflix_N
 WHERE 
      type = 'Movie' 
      AND 
-	 listed_in LIKE '%Documentaries%'
+     listed_in LIKE '%Documentaries%'
 
 --12. Find all content without a director
 
@@ -169,8 +167,8 @@ WITH ActorCTE AS (
 	                      ) AS A
 	                       CROSS APPLY xml_Data.nodes('/X') AS m(n)
 	                       WHERE type = 'Movie' 
-						   AND 
-					       country LIKE '%India%'
+				     AND 
+				     country LIKE '%India%'
                   )
 SELECT TOP 10 ActorName, COUNT(*) AS movie_count
 FROM ActorCTE
@@ -189,7 +187,7 @@ FROM Netflix_N
 GROUP BY type, (CASE
 	       WHEN description LIKE '%kill%' OR description LIKE '%violence%' THEN 'Bad'
            ELSE 'Good'
-       END 
+               END 
 )
 ORDER BY type;
  
